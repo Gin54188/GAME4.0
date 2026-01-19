@@ -414,8 +414,15 @@ public class GamePanel extends JPanel {
     //Enemy Inner Class
     private class Enemy {
         int x, y, width=40, height=40;  // Enemy position & size
-        public Enemy(int x,int y){ this.x=x; this.y=y; } // Constructor
-        public Rectangle getBounds(){ return new Rectangle(x,y,width,height); } // Collision box
-        public void draw(Graphics g,int cameraX){ g.setColor(Color.RED); g.fillRect(x-cameraX,y,width,height); } // Draw enemy
+        public Enemy(int x,int y){ 
+            this.x=x; this.y=y; // Constructor
+        } 
+        public Rectangle getBounds(){
+            return new Rectangle(x,y,width,height);
+        } // Collision box
+        public void draw(Graphics g,int cameraX){ 
+            g.setColor(Color.RED); 
+            g.fillRect(x-cameraX,y,width,height);
+        } // Draw enemy
     }
 }
