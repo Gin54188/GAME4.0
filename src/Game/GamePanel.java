@@ -152,14 +152,14 @@ public class GamePanel extends JPanel {
         currentAnimation = idleAnimation;  // Set default animation
     }
 
-    // ===== Initialize example map =====
+    // Initialize example map 
     private void initMap() {
         for(int i=0;i<map.length;i++)
             for(int j=0;j<map[0].length;j++)
                 map[i][j] = (i+j)%2;   // Simple checkerboard pattern
     }
 
-    // ===== Handle key presses =====
+    // Handle key presses
     private void handleKeyPress(KeyEvent e){
         // Story navigation
         if(GameState.currentState == GameState.STORY){
@@ -176,7 +176,8 @@ public class GamePanel extends JPanel {
             return;
         }
 
-        if(GameState.currentState != GameState.PLAYING) return; // Ignore input if not playing
+        if(GameState.currentState != GameState.PLAYING) 
+            return; // Ignore input if not playing
 
         // Horizontal movement
         if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT){ velX=-5; facingRight=false; }
@@ -260,6 +261,11 @@ public class GamePanel extends JPanel {
         }
 
         // Enemy logic
+     // ===================  ===============
+        /**
+      * Author: google
+      * link：https://www.google.com/search?q=Java+collision+detection+rectangle+intersects&sca_esv=c03ec876592c9bde&sxsrf=ANbL-n7MuSmMU3_sVwIiq9udV71gpPUPzA%3A1768796359946&ei=x7Btaem-OYqc0PEPk8urmA8&ved=0ahUKEwipvtv135aSAxUKDjQIHZPlCvMQ4dUDCBE&uact=5&oq=Java+collision+detection+rectangle+intersects&gs_lp=Egxnd3Mtd2l6LXNlcnAiLUphdmEgY29sbGlzaW9uIGRldGVjdGlvbiByZWN0YW5nbGUgaW50ZXJzZWN0czIFEAAY7wUyCBAAGKIEGIkFMggQABiiBBiJBTIFEAAY7wVI3AZQAFj8AXABeACQAQCYAe4BoAHuAaoBAzItMbgBA8gBAPgBAvgBAZgCAqAC-QGoAhDCAgcQIxgnGOoCwgINECMYgAQYJxiKBRjqAsICChAjGCcYyQIY6gLCAg0QIxjwBRgnGMkCGOoCwgIKECMY8AUYJxjqAsICFxAAGIAEGJECGLQCGOcGGIoFGOoC2AEBmAMI8QWVF2DSj1ve_roGBggBEAEYAZIHBTEuMC4xoAf9ArIHAzItMbgH8QHCBwUwLjEuMcgHCIAIAA&sclient=gws-wiz-serp
+      */
         Iterator<Enemy> it = enemies.iterator();
         while(it.hasNext()){
             Enemy e = it.next();
@@ -272,7 +278,7 @@ public class GamePanel extends JPanel {
             if(new Rectangle(playerX,playerY,playerWidth,playerHeight).intersects(e.getBounds())){
                 playerHealth-=1;// Decrease health by 1
                 playerHealth=Math.max(playerHealth,0);// Prevent negative health
-
+//========================================
                 // Player death
                 if(playerHealth <= 0){
                     System.out.println("Player died! Game Over.");

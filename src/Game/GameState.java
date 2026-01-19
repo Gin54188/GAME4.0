@@ -9,11 +9,11 @@ package Game;
  * Manages all the different states of the game and provides utility methods to check or change the state.
  * This is useful for switching between menu, playing, story, pause, and end screens.
  * 
- * Author: yesho
+ * Author: jingzhen
  */
 public class GameState {
 
-    // ===== State constants =====
+    // State constants 
     public static final int MENU = 0;      // Main menu state
     public static final int PLAYING = 1;      // Player is actively playing the game
     public static final int END = 2;           // Game over state
@@ -22,15 +22,15 @@ public class GameState {
     public static final int POST_LEVEL_STORY = 5;     // Story that occurs after a level is completed
 
     
-    // ===== Current state =====
+    //Current state 
     public static int currentState = MENU;        // Tracks the current state of the game (default: MENU)
 
-    // ===== Change the current state =====
+    // Change the current state
     public static void setState(int state) {
         currentState = state;           // Update the current state to the given value
     }
 
-    // ===== Convenience methods to check the current state =====
+    //Convenience methods to check the current state 
     // Using these methods makes code easier to read instead of writing comparisons everywhere
 
     public static boolean isMenu() {

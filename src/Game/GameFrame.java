@@ -15,7 +15,7 @@ import javax.swing.JFrame;
  */
 public class GameFrame extends JFrame {
 
-    // ===== Constructor =====
+    // Constructor =====
     public GameFrame() {
         // Set the window title
         setTitle("MyGame"); 

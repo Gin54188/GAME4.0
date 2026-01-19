@@ -8,6 +8,8 @@ package character;
  *
  * @author yesho
  */
+
+//It's not needed for the time being.
 public abstract class Character {
 
     protected int health;
