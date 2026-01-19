@@ -7,351 +7,409 @@ package Game;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.ImageIcon;
-
-import java.awt.Graphics;
-import java.awt.Color;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.Rectangle;
 import java.awt.Font;
-
-import character.SpriteAnimation;
+import java.util.*;
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 import Level.Level;
 import Level.Level1;
 import object.Platform;
 import object.Fragment;
 import object.Goal;
 import object.Background;
-/**
- *
- * @author yesho
- */
+import character.SpriteAnimation;
+
 public class GamePanel extends JPanel {
 
-    // ===== 菜单资源 =====
-    private ImageIcon menuBg;
-    private Image startButton;
-    private Rectangle startBounds;
+    // Menu Resources 
+    private ImageIcon menuBg;           // Menu background image
+    private Image startButton;           // Start button image
+    private Rectangle startBounds;       // Start button clickable area
 
-    // ===== 剧情资源 =====
-    private Image[] storyImages1_9 = new Image[9];
-    private String[] storyTexts1_9;
-    private Image[] storyImages10_44 = new Image[35];
-    private String[] storyTexts10_44;
-    private int storyIndex = 0;
-    private boolean afterLevel = false; // false = 1-9剧情, true = 10-44剧情
+    // Story Resources
+    private Image[] storyImages1_9 = new Image[9];      // Story images for first 9 slides
+    private String[] storyTexts1_9;        // Corresponding story texts
+    private Image[] storyImages10_44 = new Image[35];   // Story images after level
+    private String[] storyTexts10_44;         // Corresponding story texts after level
+    private int storyIndex = 0;                    // Current story slide index
+    private boolean afterLevel = false;       // Flag for post-level story
 
-    // ===== 玩家动画 =====
-    private SpriteAnimation idleAnimation;
-    private SpriteAnimation runAnimation;
-    private SpriteAnimation jumpAnimation;
-    private SpriteAnimation currentAnimation;
+    //Player Animations 
+    private SpriteAnimation idleAnimation, runAnimation, jumpAnimation, attackAnimation, currentAnimation;
 
-    // ===== 玩家参数 =====
-    private int playerX = 100;
-    private int playerY = 400;
-    private int playerWidth = 64;
-    private int playerHeight = 70;
+    //Player Parameters 
+    private int playerX = 100, playerY = 400, playerWidth = 64, playerHeight = 70; // Player position & size
+    private int velX = 0, velY = 0;      // Player velocity
+    private boolean jumping = false, facingRight = true; // Jump state & facing direction
+    private int playerHealth = 100;      // Player health
 
-    private int velX = 0;
-    private int velY = 0;
-    private boolean jumping = false;
+    private final int jumpStrength = -12;   // Jump speed
+    private final int gravity = 1;        // Gravity acceleration
+    private final int groundY = 400;        // Y coordinate of ground
 
-    private final int jumpStrength = -12;
-    private final int gravity = 1;
-    private final int groundY = 400;
+    // Level
+    private Level currentLevel;      // Current level object
+    private int cameraX = 0;        // Camera x-position
+    private final int SCREEN_WIDTH = 1280;     // Screen width for camera calculations
 
-    private boolean facingRight = true;
+    // Timer
+    private Timer timer;     // Main game loop timer
 
-    // ===== 关卡 =====
-    private Level currentLevel;
-    private int cameraX = 0;
-    private final int SCREEN_WIDTH = 1280;
+    //Enemy List
+    private List<Enemy> enemies = new ArrayList<>();    // List of enemies on screen
 
-    private Timer timer;
+    //Example 2D Array
+    private int[][] map = new int[10][10];   // Example map array (can be used for tiles)
 
-    public GamePanel() {
-        setBackground(Color.BLACK);
-        setFocusable(true);
+    //Static Variables
+    private static int totalMonstersSpawned = 0;   // Track total spawned monsters
 
-        // ===== 菜单资源 =====
-        menuBg = new ImageIcon("images/Interface.png");
-        startButton = new ImageIcon("images/start.png").getImage();
-        startBounds = new Rectangle(300, 350, 200, 80);
+    //Player Attack 
+    private boolean attacking = false;  // Is the player attacking
+    private int attackDuration = 10;    // Duration of attack
+    private int attackTimer = 0;      // Countdown timer for attack animation
 
-        // ===== 剧情 1-9 =====
-        for (int i = 0; i < 9; i++) {
-            storyImages1_9[i] = new ImageIcon("images/story" + (i + 1) + ".png").getImage();
-        }
-        storyTexts1_9 = new String[] {
-            "This is a world where humans and demons coexist...", // 1
-            "And you are a Red Thread Immortal, your name is Bai Yuechu.", // 2
-            "Your partner is Susu, he likes to call you Daoist Brother.", // 3
-            "You two are the best combination.", // 4
-            "Your mission is to help fated lovers recover their memories.", // 5
-            "Hello, I am Wang Fugui.", // 6
-            "Hello, I am Qingtong.", // 7
-            "You will enter their memories. Be careful.", // 8
-            "Mission start!" // 9
-        };
+    //Constructor
+    public GamePanel() { this(true); }
 
-        // ===== 剧情 10-44 =====
-        for (int i = 0; i < 35; i++) {
-            storyImages10_44[i] = new ImageIcon("images/story" + (i + 10) + ".png").getImage();
-        }
-        storyTexts10_44 = new String[] {
-            "We have recovered all the fragments of memory. Now, let's start reassembling them.", // 10
-            "Let's piece these fragments together.", // 11
-            "……", // 12
-            "It seems this is Wang Quan Fugui's memory.", // 13
-            "My name is Wang Quan Fugui, and I am a Daoist soldier. I was born as a 'weapon' of my family.", // 14
-               "From childhood, I only did two things every day: practice swordsmanship and slay demons. Like a puppet.", // 15
-            "Until I met her...", // 16
-            "Hello... I... my name is Qingtong.", // 17
-            "A monster dares to intrude here? Do you think I won't destroy you?", // 18
-            "I came to show you something.", // 19
-            " ", // 20 empty
-            "This is......", // 21
-            "You've never gone outside and never seen what your home looks like, so I used my silk threads to draw the best scenery along with your home.", // 22
-            "So, not all monsters are evil.", // 23
-            "……", // 24
-            "……", // 25
-            "You may leave.", // 26
-            "Thank you!", // 27
-            "……", // 28
-            "How dare you let a monster go? You shall be punished here!", // 29
-            "……", // 30
-            "? ? ? ? ? ? ? ? ? ? ? ? ? ? ?", // 31
-            "What are you doing here?!!", // 32
-            "I am here to help you.", // 33
-            "Then they were discovered.", // 34
-            "You actually love a monster?", // 35
-            "Now, if you kill her, I can forgive you.", // 36
-            "……", // 37
-            "!!!!!!!!!!!!!!", // 38
-            "Sorry father, I cannot do it.", // 39
-            "If we could go outside...", // 40
-            "Would you accompany me to see all these rivers and mountains?", // 41
-            "You are standing against everyone and facing death!", // 42
-            "!!!!!!!!!", // 43
-            "I hope we meet again in the next life....." // 44
-      };
+    public GamePanel(boolean loadResources) {
+        setBackground(Color.BLACK);    // Set panel background
+        setFocusable(true);       // Allow keyboard focus
 
-        // ===== 玩家动画 =====
-        idleAnimation = new SpriteAnimation("images/player.png", 64, 80);
-        runAnimation  = new SpriteAnimation("images/run.png", 80, 80);
-        jumpAnimation = new SpriteAnimation("images/jump.png", 63, 64);
-        currentAnimation = idleAnimation;
+        if (loadResources) loadAssets();  // Load images and animations if true
+        currentLevel = new Level1();      // Initialize first level
+        initMap();         // Initialize sample map
 
-        // ===== 初始化关卡 =====
-        currentLevel = new Level1();
-
-        // ===== 定时器 =====
+        //Game loop timer
         timer = new Timer(30, e -> {
-            if (GameState.currentState == GameState.PLAYING) {
-                updateGame();
-            }
-            repaint();
+            if (GameState.currentState == GameState.PLAYING) updateGame(); // Update game if in PLAYING state
+            repaint();     // Redraw the screen
         });
         timer.start();
 
-        // ===== 键盘控制 =====
+        //Keyboard input
         addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent e) {
-
-                // ===== 剧情空格切换 =====
-                if (GameState.currentState == GameState.STORY) {
-                    if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                        storyIndex++;
-                        if (!afterLevel && storyIndex >= storyImages1_9.length) {
-                            // 第1-9剧情结束 → 进入关卡
-                            GameState.currentState = GameState.PLAYING;
-                            storyIndex = 0;
-                            afterLevel = true;
-                            playerX = 100;
-                            playerY = groundY;
-                        } else if (afterLevel && storyIndex >= storyImages10_44.length) {
-                            // 第10-44剧情结束 → 游戏结束
-                            GameState.currentState = GameState.END;
-                        }
-                    }
-                    return;
-                }
-
-                if (GameState.currentState != GameState.PLAYING) return;
-
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_A -> {
-                        velX = -5;
-                        facingRight = false;
-                    }
-                    case KeyEvent.VK_D -> {
-                        velX = 5;
-                        facingRight = true;
-                    }
-                    case KeyEvent.VK_SPACE -> {
-                        if (!jumping) {
-                            velY = jumpStrength;
-                            jumping = true;
-                        }
-                    }
-                }
-            }
-
+            public void keyPressed(KeyEvent e) { handleKeyPress(e); }     // Handle key press events
             @Override
             public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_D) {
-                    velX = 0;
-                }
+                if (e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_D) velX = 0; // Stop horizontal movement
             }
         });
 
-        // ===== 鼠标控制 =====
+        //Mouse input
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mousePressed(MouseEvent e) {
-                if (GameState.currentState == GameState.MENU) {
-                    if (startBounds.contains(e.getPoint())) {
-                        GameState.currentState = GameState.STORY;
-                        storyIndex = 0;
-                        afterLevel = false;
-                        requestFocusInWindow();
-                    }
-                }
-            }
+            public void mousePressed(MouseEvent e) { handleMousePress(e); } // Handle mouse clicks
         });
     }
 
-    private void updateGame() {
-        // ===== 玩家移动 =====
-        playerX += velX;
-        playerY += velY;
+    // ===== Load Images and Animations =====
+    private void loadAssets() {
+        menuBg = new ImageIcon("images/Interface.png");     // Menu background
+        startButton = new ImageIcon("images/start.png").getImage();    // Start button image
+        startBounds = new Rectangle(500, 500, 200, 80);           // Start button clickable area
 
-        if (playerY < groundY) velY += gravity;
-        else {
-            playerY = groundY;
-            velY = 0;
-            jumping = false;
-        }
+        // Load first story images (1-9)
+        for (int i = 0; i < 9; i++) storyImages1_9[i] = new ImageIcon("images/story" + (i + 1) + ".png").getImage();
+        storyTexts1_9 = new String[]{        // Story text for first 9 images
+            "This is a world where humans and demons coexist...",
+            "And you are a Red Thread Immortal, your name is Bai Yuechu.",
+            "Your partner is Susu, he likes to call you Daoist Brother.",
+            "You two are the best combination.",
+            "Your mission is to help fated lovers recover their memories.",
+            "Hello, I am Wang Fugui.",
+            "Hello, I am Qingtong.",
+            "You will enter their memories. Be careful.",
+            "Mission start!"
+        };
 
-        if (jumping) currentAnimation = jumpAnimation;
-        else if (velX != 0) currentAnimation = runAnimation;
-        else currentAnimation = idleAnimation;
+        // Load post-level story images (10-44)
+        for (int i = 0; i < 35; i++) storyImages10_44[i] = new ImageIcon("images/story" + (i + 10) + ".png").getImage();
+        storyTexts10_44 = new String[]{         // Post-level story texts
+            "We have recovered all the fragments of memory. Now, let's start reassembling them.",
+            "Let's piece these fragments together.",
+            "……","It seems this is Wang Quan Fugui's memory.","My name is Wang Quan Fugui, and I am a Daoist soldier.",
+            "From childhood, I only did two things every day: practice swordsmanship and slay demons.",
+            "Until I met her...","Hello... I... my name is Qingtong.","A monster dares to intrude here?","I came to show you something.",
+            " ","This is......","You've never gone outside...","So, not all monsters are evil.","……",
+            "……","You may leave.","Thank you!","……","How dare you let a monster go? You shall be punished here!","……",
+            "? ? ? ? ? ? ? ? ? ? ? ? ? ? ?","What are you doing here?!!","I am here to help you.","Then they were discovered.",
+            "You actually love a monster?","Now, if you kill her, I can forgive you.","……","!!!!!!!!!!!!!!",
+            "Sorry father, I cannot do it.","If we could go outside...","Would you accompany me to see all these rivers and mountains?",
+            "You are standing against everyone and facing death!","!!!!!!!!!","I hope we meet again in the next life....."
+        };
 
-        currentAnimation.nextFrame();
+        // Load player animations
+        idleAnimation = new SpriteAnimation("images/player.png",64,80);
+        runAnimation = new SpriteAnimation("images/run.png",80,80);
+        jumpAnimation = new SpriteAnimation("images/jump.png",63,64);
+        attackAnimation = new SpriteAnimation("images/attack.png",48,48); // Attack animation
+        currentAnimation = idleAnimation;  // Set default animation
+    }
 
-        // ===== 碰撞检测与碎片收集 =====
-        for (Platform p : currentLevel.getPlatforms()) {
-            Rectangle pr = p.getBounds();
-            Rectangle pb = new Rectangle(playerX, playerY + playerHeight, playerWidth, 5);
-            if (pb.intersects(pr) && velY >= 0) {
-                playerY = pr.y - playerHeight;
-                velY = 0;
-                jumping = false;
-            }
-        }
+    // ===== Initialize example map =====
+    private void initMap() {
+        for(int i=0;i<map.length;i++)
+            for(int j=0;j<map[0].length;j++)
+                map[i][j] = (i+j)%2;   // Simple checkerboard pattern
+    }
 
-        for (Fragment f : currentLevel.getFragments()) {
-            if (!f.isCollected() && new Rectangle(playerX, playerY, playerWidth, playerHeight).intersects(f.getBounds())) {
-                f.collect();
-            }
-        }
-
-        // ===== 相机滚动 =====
-        cameraX = playerX - SCREEN_WIDTH / 2;
-        if (cameraX < 0) cameraX = 0;
-        if (cameraX > currentLevel.getLevelWidth() - SCREEN_WIDTH)
-            cameraX = currentLevel.getLevelWidth() - SCREEN_WIDTH;
-
-        // ===== 判断是否到达终点 =====
-        if (currentLevel.getGoal() != null) {
-            if (new Rectangle(playerX, playerY, playerWidth, playerHeight)
-                    .intersects(currentLevel.getGoal().getBounds())) {
-                boolean allCollected = true;
-                for (Fragment f : currentLevel.getFragments()) {
-                    if (!f.isCollected()) allCollected = false;
+    // ===== Handle key presses =====
+    private void handleKeyPress(KeyEvent e){
+        // Story navigation
+        if(GameState.currentState == GameState.STORY){
+            if(e.getKeyCode() == KeyEvent.VK_SPACE){
+                storyIndex++;
+                if(!afterLevel && storyIndex >= storyImages1_9.length){
+                    GameState.currentState = GameState.PLAYING; // Start game after pre-level story
+                    storyIndex = 0; afterLevel = true;
+                    playerX = 100; playerY = groundY;
+                } else if(afterLevel && storyIndex >= storyImages10_44.length){
+                    GameState.currentState = GameState.END;    // End game after post-level story
                 }
-                if (allCollected) {
-                    // 进入第10-44剧情
-                    GameState.currentState = GameState.STORY;
-                    storyIndex = 0;
-                    System.out.println("Level Completed! Entering new story...");
-                }
+            }
+            return;
+        }
+
+        if(GameState.currentState != GameState.PLAYING) return; // Ignore input if not playing
+
+        // Horizontal movement
+        if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT){ velX=-5; facingRight=false; }
+        if(e.getKeyCode() == KeyEvent.VK_D || e.getKeyCode() == KeyEvent.VK_RIGHT){ velX=5; facingRight=true; }
+
+        // Jump
+        if(e.getKeyCode() == KeyEvent.VK_SPACE && !jumping){ velY=-12; jumping=true; }
+
+        // Attack
+        if(e.getKeyCode() == KeyEvent.VK_J) attackEnemies();
+    }
+
+    // ===== Handle mouse clicks =====
+    private void handleMousePress(MouseEvent e){
+        if(GameState.currentState == GameState.MENU && startBounds.contains(e.getPoint())){
+            GameState.currentState = GameState.STORY; // Start story when start button clicked
+            storyIndex = 0; afterLevel=false;
+            requestFocusInWindow();       // Focus for keyboard input
+        }
+    }
+
+    //Player attack logic
+    private void attackEnemies(){
+        attacking = true;// Set attacking flag to true
+        attackTimer = attackAnimation.getFrameCount(); // Set attack duration
+        attackAnimation.reset(); // Reset animation to first frame
+
+        // Check collision with each enemy
+        Iterator<Enemy> it = enemies.iterator();
+        while(it.hasNext()){
+            Enemy e = it.next();
+            Rectangle attackRect; // Define the area of attack
+            if(facingRight){
+                attackRect = new Rectangle(playerX, playerY, playerWidth + 40, playerHeight);
+            } else {
+                attackRect = new Rectangle(playerX - 40, playerY, playerWidth + 40, playerHeight);
+            }
+            if(attackRect.intersects(e.getBounds())){
+                it.remove(); // Remove enemy if hit
             }
         }
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    //Update game logic
+    private void updateGame(){
+        // Player movement and gravity
+        playerX += velX; playerY += velY;   // Update player position by velocity
+        if(playerY < groundY) velY += gravity;// Applyravity if above grou gnd
+        else{ playerY = groundY; velY=0; jumping=false; }// Reset position if on ground
 
-        if (GameState.currentState == GameState.MENU) {
-            drawMenu(g);
-        } else if (GameState.currentState == GameState.STORY) {
-            drawStory(g);
-        } else if (GameState.currentState == GameState.PLAYING) {
-            drawLevel(g);
-        } else if (GameState.currentState == GameState.END) {
-            drawEnd(g);
-        }
-    }
-
-    private void drawMenu(Graphics g) {
-        g.drawImage(menuBg.getImage(), 0, 0, getWidth(), getHeight(), null);
-        g.drawImage(startButton, startBounds.x, startBounds.y,
-                startBounds.width, startBounds.height, null);
-    }
-
-    private void drawStory(Graphics g) {
-        Image[] images = afterLevel ? storyImages10_44 : storyImages1_9;
-        String[] texts = afterLevel ? storyTexts10_44 : storyTexts1_9;
-
-        if (storyIndex >= images.length) return;
-        g.drawImage(images[storyIndex], 0, 0, getWidth(), getHeight(), null);
-
-        g.setColor(new Color(0, 0, 0, 180));
-        g.fillRect(0, getHeight() - 120, getWidth(), 120);
-
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
-        g.drawString(texts[storyIndex], 40, getHeight() - 60);
-        g.drawString("Press SPACE to continue", getWidth() - 260, getHeight() - 20);
-    }
-
-    private void drawLevel(Graphics g) {
-        // 背景
-        if (currentLevel.getBackground() != null) {
-            g.drawImage(currentLevel.getBackground().getImg(), 0, 0, getWidth(), getHeight(), null);
-        }
-
-        // 平台
-        for (Platform p : currentLevel.getPlatforms()) p.draw(g, cameraX);
-
-        // 碎片
-        for (Fragment f : currentLevel.getFragments()) f.draw(g, cameraX);
-
-        // 终点
-        if (currentLevel.getGoal() != null) currentLevel.getGoal().draw(g, cameraX);
-
-        // 玩家
-        Image frame = currentAnimation.getCurrentFrame();
-        if (facingRight) {
-            g.drawImage(frame, playerX - cameraX, playerY, playerWidth, playerHeight, null);
+        // Update player animation
+        if(attacking) {
+            currentAnimation = attackAnimation;// Use attack animation
+            attackAnimation.nextFrame();// Advance animation frame
         } else {
-            g.drawImage(frame, playerX - cameraX + playerWidth, playerY, -playerWidth, playerHeight, null);
+            currentAnimation = jumping ? jumpAnimation : (velX!=0?runAnimation:idleAnimation);
+            currentAnimation.nextFrame();// Advance animation frame
         }
 
-        // 地面
-        g.setColor(Color.GREEN);
-        g.fillRect(0, groundY + playerHeight, getWidth(), 20);
+        // Platform collision
+        for(Platform p:currentLevel.getPlatforms()){
+            Rectangle pr = p.getBounds();// Get platform bounds
+            Rectangle pb = new Rectangle(playerX, playerY+playerHeight, playerWidth,5);
+            if(pb.intersects(pr) && velY>=0){  // Collision from top only
+                playerY = pr.y-playerHeight;// Position player on top of platform
+                velY=0; // Stop falling
+                jumping=false;  // Reset jump state
+            }
+        }
+
+        // Collect fragments
+        for(Fragment f:currentLevel.getFragments()){
+            if(f!=null && !f.isCollected() && new Rectangle(playerX,playerY,playerWidth,playerHeight).intersects(f.getBounds()))
+                f.collect();     // Mark fragment as collected if player touches it
+        }
+
+        // Random enemy spawning
+        if(Math.random()<0.01){   // 1% chance per frame
+            enemies.add(new Enemy(playerX + SCREEN_WIDTH, groundY)); // Spawn enemy off-screen to the right
+            totalMonstersSpawned++;  // Update total spawn counter
+        }
+
+        // Enemy logic
+        Iterator<Enemy> it = enemies.iterator();
+        while(it.hasNext()){
+            Enemy e = it.next();
+            // Create a rectangle representing the player for collision checks
+            if(new Rectangle(playerX,playerY,playerWidth,playerHeight).intersects(e.getBounds()) && attacking){
+                it.remove();// Enemy destroyed
+                continue;  // Skip remaining logic for this enemy
+            }
+             // If player collides with enemy without attacking, take damage
+            if(new Rectangle(playerX,playerY,playerWidth,playerHeight).intersects(e.getBounds())){
+                playerHealth-=1;// Decrease health by 1
+                playerHealth=Math.max(playerHealth,0);// Prevent negative health
+
+                // Player death
+                if(playerHealth <= 0){
+                    System.out.println("Player died! Game Over.");
+                    System.exit(0);// End game immediately
+                }
+            }
+            // Enemy follows player
+            if(e.x<playerX) e.x+=2;  // Move right towards player
+            else if(e.x>playerX) e.x-=2;  // Move left towards player
+        }
+
+        // Attack timer countdown
+        if(attacking) {
+            attackTimer--;// Reduce remaining attack duration
+            if(attackTimer<=0) attacking=false;// Stop attacking when timer runs out
+        }
+
+        // Update camera position
+        cameraX = playerX - SCREEN_WIDTH/2;
+
+        // Goal / level completion check
+        if(currentLevel.getGoal()!=null){
+            Rectangle playerRect = new Rectangle(playerX,playerY,playerWidth,playerHeight);
+            if(playerRect.intersects(currentLevel.getGoal().getBounds())){
+                boolean allCollected = true;// Assume all fragments collected
+                for(Fragment f:currentLevel.getFragments())
+                    if(f==null || !f.isCollected()){ allCollected=false; break; }
+                if(allCollected){
+                    GameState.currentState=GameState.STORY; // Transition to story after level
+                    storyIndex=0; // Reset story index
+                    System.out.println("Level Completed! Entering story...");
+                    return;
+                }
+            }
+        }
+
+        // Output player data to file
+        try(PrintWriter pw = new PrintWriter("playerData.txt")){
+            pw.println("Health: "+playerHealth);// Save current health
+            pw.println("Monsters spawned: "+totalMonstersSpawned);// Save total enemies spawned
+        }catch(Exception ex){ ex.printStackTrace(); // Print any file writing errors
+        }
     }
 
-    private void drawEnd(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, getWidth(), getHeight());
+    // Paint components 
+    @Override
+    protected void paintComponent(Graphics g){
+        super.paintComponent(g);// Clear panel before drawing
+        // Draw based on current game state
+        switch(GameState.currentState){
+            case GameState.MENU -> drawMenu(g); // Draw main menu
+            case GameState.STORY -> drawStory(g);// Draw story slides
+            case GameState.PLAYING -> drawLevel(g);// Draw game level
+            case GameState.END -> drawEnd(g);// Draw end screen
+        }
+    }
+
+    //Draw Menu
+    private void drawMenu(Graphics g){
+        g.drawImage(menuBg.getImage(),0,0,getWidth(),getHeight(),null);// Background
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 36));
-        g.drawString("You have collected all the fragments.", getWidth()/2 - 150, getHeight()/2);
+        g.setFont(new Font("Arial", Font.BOLD, 48));
+        String title = "Traces of the Past"; // Game title
+        int titleWidth = g.getFontMetrics().stringWidth(title);
+        g.drawString(title, (getWidth() - titleWidth) / 2, 100);   // Draw centered title
+        g.drawImage(startButton,startBounds.x,startBounds.y,startBounds.width,startBounds.height,null);// Start button
+    }
+
+    //Draw Story 
+    private void drawStory(Graphics g){
+        Image[] images = afterLevel?storyImages10_44:storyImages1_9;// Choose story images
+        String[] texts = afterLevel?storyTexts10_44:storyTexts1_9;// Choose story text
+        if(storyIndex>=images.length) return;   // Check index bounds
+        g.drawImage(images[storyIndex],0,0,getWidth(),getHeight(),null);// Draw image
+        g.setColor(new Color(0,0,0,180));  // Semi-transparent text box
+        g.fillRect(0,getHeight()-120,getWidth(),120); // Semi-transparent text background
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial",Font.PLAIN,18));
+        g.drawString(texts[storyIndex],40,getHeight()-60); // Draw story text
+        g.drawString("Press SPACE to continue",getWidth()-260,getHeight()-20);// Prompt
+
+    }
+
+    //Draw Level
+    private void drawLevel(Graphics g){
+        // Background scrolling
+        if(currentLevel.getBackground()!=null){
+            Background bg = currentLevel.getBackground();
+            int bgWidth = getWidth();// Width of the panel
+            int x1 = -cameraX % bgWidth;    // Calculate background offset
+            g.drawImage(bg.getImg(), x1, 0, bgWidth, getHeight(), null); // Draw first copy
+            g.drawImage(bg.getImg(), x1 + bgWidth, 0, bgWidth, getHeight(), null);// Draw second copy for loop
+        }
+
+        // Draw platforms
+        for(Platform p:currentLevel.getPlatforms()) p.draw(g,cameraX);
+        for(Fragment f:currentLevel.getFragments()) f.draw(g,cameraX); // Draw fragments
+        if(currentLevel.getGoal()!=null) currentLevel.getGoal().draw(g,cameraX);// Draw goal
+
+        // Draw player
+        Image frame = currentAnimation.getCurrentFrame();
+        if(facingRight) g.drawImage(frame, playerX-cameraX, playerY, playerWidth, playerHeight, null);// Facing right
+        else g.drawImage(frame, playerX-cameraX+playerWidth, playerY, -playerWidth, playerHeight, null);// Facing left (flip)
+
+        // Draw enemies
+        for(Enemy e:enemies) e.draw(g,cameraX);
+
+        // Draw ground
+        g.setColor(Color.GREEN);
+        g.fillRect(0,groundY+playerHeight,getWidth(),20);// Ground rectangle
+
+        // Draw health bar
+        g.setColor(Color.RED);
+        g.fillRect(getWidth()-210,20,Math.max(playerHealth*2,0),20);// Health proportional
+        g.setColor(Color.WHITE);
+        g.drawRect(getWidth()-210,20,200,20);// Health bar frame
+
+        // Display controls
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 18));
+        g.drawString("A: Move Left  D: Move Right  SPACE: Jump  J: Attack", 20, 30);
+    }
+
+    //Draw End Screen
+    private void drawEnd(Graphics g){
+        g.setColor(Color.BLACK); // Clear screen
+        g.fillRect(0,0,getWidth(),getHeight());
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial",Font.BOLD,36));
+        g.drawString("You have collected all the fragments.",getWidth()/2-200,getHeight()/2);// End message
+    }
+
+    //Enemy Inner Class
+    private class Enemy {
+        int x, y, width=40, height=40;  // Enemy position & size
+        public Enemy(int x,int y){ this.x=x; this.y=y; } // Constructor
+        public Rectangle getBounds(){ return new Rectangle(x,y,width,height); } // Collision box
+        public void draw(Graphics g,int cameraX){ g.setColor(Color.RED); g.fillRect(x-cameraX,y,width,height); } // Draw enemy
     }
 }

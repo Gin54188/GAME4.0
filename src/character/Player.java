@@ -8,6 +8,8 @@ package character;
  *
  * @author yesho
  */
+
+//It's not needed for the time being.
 public class Player extends Character {
 
     public Player() {

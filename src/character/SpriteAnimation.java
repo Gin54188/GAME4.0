@@ -8,9 +8,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
 /**
- *
- * @author yesho
+ * SpriteAnimation handles animations by slicing a sprite sheet into frames.
  */
 public class SpriteAnimation {
 
@@ -27,7 +27,6 @@ public class SpriteAnimation {
      */
     public SpriteAnimation(String path, int frameWidth, int frameHeight) {
 
-        // Prevent division by zero
         if (frameWidth <= 0 || frameHeight <= 0) {
             throw new IllegalArgumentException(
                 "frameWidth and frameHeight must be greater than 0"
@@ -65,8 +64,6 @@ public class SpriteAnimation {
         }
     }
 
-
-
     // Move to next frame
     public void nextFrame() {
         currentFrame = (currentFrame + 1) % frames.size();
@@ -75,5 +72,20 @@ public class SpriteAnimation {
     // Get current frame image
     public BufferedImage getCurrentFrame() {
         return frames.get(currentFrame);
+    }
+
+    // Reset to first frame
+    public void reset() {
+        currentFrame = 0;
+    }
+
+    // Set animation to a specific frame
+    public void setFrame(int index) {
+        if(index >= 0 && index < frames.size()) currentFrame = index;
+    }
+
+    // Get total frames
+    public int getFrameCount() {
+        return frames.size();
     }
 }

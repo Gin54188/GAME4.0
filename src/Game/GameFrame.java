@@ -3,21 +3,37 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package Game;
+
 import javax.swing.JFrame;
+
 /**
- *
- * @author yesho
+ * GameFrame class
+ * This class creates the main window for the game.
+ * It sets up the size, title, behavior, and adds the GamePanel where the game runs.
+ * 
+ * Author: yesho
  */
 public class GameFrame extends JFrame {
 
+    // ===== Constructor =====
     public GameFrame() {
-        setTitle("MyGame");
-        setSize(1280, 720);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        // Set the window title
+        setTitle("MyGame"); 
 
-        add(new GamePanel());
+        // Set the size of the game window (width x height)
+        setSize(1280, 720); 
 
-        setVisible(true);
+        // Ensure the application exits when the window is closed
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+
+        // Center the window on the screen
+        setLocationRelativeTo(null); 
+
+        // Add the main game panel to the frame
+        // GamePanel contains all the game logic, rendering, and input handling
+        add(new GamePanel()); 
+
+        // Make the window visible
+        setVisible(true); 
     }
 }

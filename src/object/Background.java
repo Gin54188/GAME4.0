@@ -4,6 +4,7 @@
  */
 package object;
 
+
 import java.awt.Graphics;
 import java.awt.Image;
 
@@ -18,15 +19,18 @@ public class Background {
         return img;
     }
 
+
     public void draw(Graphics g, int cameraX, int panelWidth, int panelHeight){
         if (img == null) return;
-        // 拉伸背景到整个面板
-        g.drawImage(img, 0, 0, panelWidth, panelHeight, null);
 
-    }
+        int imgWidth = img.getWidth(null);
+        if (imgWidth <= 0) imgWidth = panelWidth;
 
-    // ===== 获取背景图片 =====
-    public Image getImage() {
-        return img;
+        // 计算偏移量
+        int xOffset = -cameraX % imgWidth;
+
+        // 绘制两张背景图，循环拼接
+        g.drawImage(img, xOffset, 0, imgWidth, panelHeight, null);
+        g.drawImage(img, xOffset + imgWidth, 0, imgWidth, panelHeight, null);
     }
 }

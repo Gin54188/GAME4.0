@@ -27,6 +27,14 @@ public class Level1 extends Level {
         platforms.add(new Platform(450, 400, 300, 20));
         platforms.add(new Platform(800, 350, 250, 20));
         platforms.add(new Platform(1100, 300, 200, 20));
+        platforms.add(new Platform(1400, 350, 200, 20));
+        platforms.add(new Platform(1650, 400, 200, 20));
+        platforms.add(new Platform(1900, 500, 200, 20));
+        platforms.add(new Platform(2100, 400, 200, 20));
+        platforms.add(new Platform(2350, 400, 200, 20));
+        platforms.add(new Platform(2600, 350, 200, 20));
+        platforms.add(new Platform(2850, 300, 200, 20));
+        platforms.add(new Platform(3100, 400, 200, 20));
         levelWidth = 1400;
 
         // 碎片
@@ -34,8 +42,13 @@ public class Level1 extends Level {
         fragments.add(new Fragment(550, 350, "images/fragment1.png"));
         fragments.add(new Fragment(850, 300, "images/fragment1.png"));
         fragments.add(new Fragment(1150, 250, "images/fragment1.png"));
+        fragments.add(new Fragment(1450, 300, "images/fragment1.png"));
+        fragments.add(new Fragment(1700, 350, "images/fragment1.png"));
+        fragments.add(new Fragment(1950, 450, "images/fragment1.png"));
+        fragments.add(new Fragment(1150, 250, "images/fragment1.png"));
+        fragments.add(new Fragment(1150, 250, "images/fragment1.png"));
 
         // 终点
-        goal = new Goal(1300, 260, 50, 50);
+        goal = new Goal(3200, 350, 50, 50);
     }
 }

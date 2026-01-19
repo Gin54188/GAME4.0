@@ -5,50 +5,55 @@
 package Game;
 
 /**
- *
- * @author yesho
+ * GameState class
+ * Manages all the different states of the game and provides utility methods to check or change the state.
+ * This is useful for switching between menu, playing, story, pause, and end screens.
+ * 
+ * Author: yesho
  */
 public class GameState {
 
-    // ===== 状态常量 =====
-    public static final int MENU = 0;      // 主菜单
-    public static final int PLAYING = 1;   // 游戏中
-    public static final int END = 2;        // 游戏结束
-    public static final int STORY = 3;      // 剧情（新功能预留）
-    public static final int PAUSE = 4;      // 暂停（新功能预留）
-    public static final int POST_LEVEL_STORY = 5;// 关卡后剧情
+    // ===== State constants =====
+    public static final int MENU = 0;      // Main menu state
+    public static final int PLAYING = 1;      // Player is actively playing the game
+    public static final int END = 2;           // Game over state
+    public static final int STORY = 3;      // Story/Cutscene state (reserved for future)
+    public static final int PAUSE = 4;      // Pause state (reserved for future)
+    public static final int POST_LEVEL_STORY = 5;     // Story that occurs after a level is completed
 
     
-    // ===== 当前状态 =====
-    public static int currentState = MENU;
+    // ===== Current state =====
+    public static int currentState = MENU;        // Tracks the current state of the game (default: MENU)
 
-    // ===== 切换状态 =====
+    // ===== Change the current state =====
     public static void setState(int state) {
-        currentState = state;
+        currentState = state;           // Update the current state to the given value
     }
 
-    // ===== 判断方法（写代码更舒服）=====
+    // ===== Convenience methods to check the current state =====
+    // Using these methods makes code easier to read instead of writing comparisons everywhere
+
     public static boolean isMenu() {
-        return currentState == MENU;
+        return currentState == MENU;        // Returns true if the game is in the menu state
     }
 
     public static boolean isPlaying() {
-        return currentState == PLAYING;
+        return currentState == PLAYING;       // Returns true if the game is currently being played
     }
 
     public static boolean isEnd() {
-        return currentState == END;
+        return currentState == END;          // Returns true if the game is in the end state
     }
 
     public static boolean isStory() {
-        return currentState == STORY;
+        return currentState == STORY;      // Returns true if the game is showing a story/cutscene
     }
 
     public static boolean isPaused() {
-        return currentState == PAUSE;
+        return currentState == PAUSE;      // Returns true if the game is paused
     }
     
     public static boolean isPostLevelStory() {
-    return currentState == POST_LEVEL_STORY;
-}
+        return currentState == POST_LEVEL_STORY;    // Returns true if the game is showing the story after a level
+    }
 }
