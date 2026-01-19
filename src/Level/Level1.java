@@ -31,9 +31,9 @@ public class Level1 extends Level {
 
         // 碎片
         fragments.add(new Fragment(200, 450, "images/fragment1.png"));
-        fragments.add(new Fragment(550, 350, "images/fragment2.png"));
-        fragments.add(new Fragment(850, 300, "images/fragment3.png"));
-        fragments.add(new Fragment(1150, 250, "images/fragment4.png"));
+        fragments.add(new Fragment(550, 350, "images/fragment1.png"));
+        fragments.add(new Fragment(850, 300, "images/fragment1.png"));
+        fragments.add(new Fragment(1150, 250, "images/fragment1.png"));
 
         // 终点
         goal = new Goal(1300, 260, 50, 50);

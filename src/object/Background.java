@@ -13,8 +13,20 @@ public class Background {
     public Background(Image img){
         this.img = img;
     }
+    
+    public Image getImg() {
+        return img;
+    }
 
-    public void draw(Graphics g, int cameraX){
-        g.drawImage(img, -cameraX, 0, null);
+    public void draw(Graphics g, int cameraX, int panelWidth, int panelHeight){
+        if (img == null) return;
+        // 拉伸背景到整个面板
+        g.drawImage(img, 0, 0, panelWidth, panelHeight, null);
+
+    }
+
+    // ===== 获取背景图片 =====
+    public Image getImage() {
+        return img;
     }
 }

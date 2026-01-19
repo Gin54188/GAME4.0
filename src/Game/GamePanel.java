@@ -16,7 +16,6 @@ import java.awt.Rectangle;
 import java.awt.Font;
 
 import character.SpriteAnimation;
-
 import Level.Level;
 import Level.Level1;
 import object.Platform;
@@ -35,9 +34,12 @@ public class GamePanel extends JPanel {
     private Rectangle startBounds;
 
     // ===== 剧情资源 =====
-    private Image[] storyImages = new Image[9];
-    private String[] storyTexts;
+    private Image[] storyImages1_9 = new Image[9];
+    private String[] storyTexts1_9;
+    private Image[] storyImages10_44 = new Image[35];
+    private String[] storyTexts10_44;
     private int storyIndex = 0;
+    private boolean afterLevel = false; // false = 1-9剧情, true = 10-44剧情
 
     // ===== 玩家动画 =====
     private SpriteAnimation idleAnimation;
@@ -77,21 +79,63 @@ public class GamePanel extends JPanel {
         startButton = new ImageIcon("images/start.png").getImage();
         startBounds = new Rectangle(300, 350, 200, 80);
 
-        // ===== 剧情资源 =====
+        // ===== 剧情 1-9 =====
         for (int i = 0; i < 9; i++) {
-            storyImages[i] = new ImageIcon("images/story" + (i + 1) + ".png").getImage();
+            storyImages1_9[i] = new ImageIcon("images/story" + (i + 1) + ".png").getImage();
         }
-        storyTexts = new String[] {
-            "This is a world where humans and demons coexist...",
-            "And you are a Red Thread Immortal, your name is Bai Yuechu.",
-            "Your partner is Susu, he likes to call you Daoist Brother.",
-            "You two are the best combination.",
-            "Your mission is to help fated lovers recover their memories.",
-            "Hello, I am Wang Fugui.",
-            "Hello, I am Qingtong.",
-            "You will enter their memories. Be careful.",
-            "Mission start!"
+        storyTexts1_9 = new String[] {
+            "This is a world where humans and demons coexist...", // 1
+            "And you are a Red Thread Immortal, your name is Bai Yuechu.", // 2
+            "Your partner is Susu, he likes to call you Daoist Brother.", // 3
+            "You two are the best combination.", // 4
+            "Your mission is to help fated lovers recover their memories.", // 5
+            "Hello, I am Wang Fugui.", // 6
+            "Hello, I am Qingtong.", // 7
+            "You will enter their memories. Be careful.", // 8
+            "Mission start!" // 9
         };
+
+        // ===== 剧情 10-44 =====
+        for (int i = 0; i < 35; i++) {
+            storyImages10_44[i] = new ImageIcon("images/story" + (i + 10) + ".png").getImage();
+        }
+        storyTexts10_44 = new String[] {
+            "We have recovered all the fragments of memory. Now, let's start reassembling them.", // 10
+            "Let's piece these fragments together.", // 11
+            "……", // 12
+            "It seems this is Wang Quan Fugui's memory.", // 13
+            "My name is Wang Quan Fugui, and I am a Daoist soldier. I was born as a 'weapon' of my family.", // 14
+               "From childhood, I only did two things every day: practice swordsmanship and slay demons. Like a puppet.", // 15
+            "Until I met her...", // 16
+            "Hello... I... my name is Qingtong.", // 17
+            "A monster dares to intrude here? Do you think I won't destroy you?", // 18
+            "I came to show you something.", // 19
+            " ", // 20 empty
+            "This is......", // 21
+            "You've never gone outside and never seen what your home looks like, so I used my silk threads to draw the best scenery along with your home.", // 22
+            "So, not all monsters are evil.", // 23
+            "……", // 24
+            "……", // 25
+            "You may leave.", // 26
+            "Thank you!", // 27
+            "……", // 28
+            "How dare you let a monster go? You shall be punished here!", // 29
+            "……", // 30
+            "? ? ? ? ? ? ? ? ? ? ? ? ? ? ?", // 31
+            "What are you doing here?!!", // 32
+            "I am here to help you.", // 33
+            "Then they were discovered.", // 34
+            "You actually love a monster?", // 35
+            "Now, if you kill her, I can forgive you.", // 36
+            "……", // 37
+            "!!!!!!!!!!!!!!", // 38
+            "Sorry father, I cannot do it.", // 39
+            "If we could go outside...", // 40
+            "Would you accompany me to see all these rivers and mountains?", // 41
+            "You are standing against everyone and facing death!", // 42
+            "!!!!!!!!!", // 43
+            "I hope we meet again in the next life....." // 44
+      };
 
         // ===== 玩家动画 =====
         idleAnimation = new SpriteAnimation("images/player.png", 64, 80);
@@ -99,7 +143,7 @@ public class GamePanel extends JPanel {
         jumpAnimation = new SpriteAnimation("images/jump.png", 63, 64);
         currentAnimation = idleAnimation;
 
-        // ===== 关卡 =====
+        // ===== 初始化关卡 =====
         currentLevel = new Level1();
 
         // ===== 定时器 =====
@@ -120,10 +164,16 @@ public class GamePanel extends JPanel {
                 if (GameState.currentState == GameState.STORY) {
                     if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                         storyIndex++;
-                        if (storyIndex >= storyImages.length) {
+                        if (!afterLevel && storyIndex >= storyImages1_9.length) {
+                            // 第1-9剧情结束 → 进入关卡
                             GameState.currentState = GameState.PLAYING;
-                            playerX = 100; // 重置玩家位置
+                            storyIndex = 0;
+                            afterLevel = true;
+                            playerX = 100;
                             playerY = groundY;
+                        } else if (afterLevel && storyIndex >= storyImages10_44.length) {
+                            // 第10-44剧情结束 → 游戏结束
+                            GameState.currentState = GameState.END;
                         }
                     }
                     return;
@@ -165,6 +215,7 @@ public class GamePanel extends JPanel {
                     if (startBounds.contains(e.getPoint())) {
                         GameState.currentState = GameState.STORY;
                         storyIndex = 0;
+                        afterLevel = false;
                         requestFocusInWindow();
                     }
                 }
@@ -222,8 +273,10 @@ public class GamePanel extends JPanel {
                     if (!f.isCollected()) allCollected = false;
                 }
                 if (allCollected) {
-                    GameState.currentState = GameState.END;
-                    System.out.println("Level Completed!");
+                    // 进入第10-44剧情
+                    GameState.currentState = GameState.STORY;
+                    storyIndex = 0;
+                    System.out.println("Level Completed! Entering new story...");
                 }
             }
         }
@@ -251,22 +304,25 @@ public class GamePanel extends JPanel {
     }
 
     private void drawStory(Graphics g) {
-        if (storyIndex >= storyImages.length) return;
-        g.drawImage(storyImages[storyIndex], 0, 0, getWidth(), getHeight(), null);
+        Image[] images = afterLevel ? storyImages10_44 : storyImages1_9;
+        String[] texts = afterLevel ? storyTexts10_44 : storyTexts1_9;
+
+        if (storyIndex >= images.length) return;
+        g.drawImage(images[storyIndex], 0, 0, getWidth(), getHeight(), null);
 
         g.setColor(new Color(0, 0, 0, 180));
         g.fillRect(0, getHeight() - 120, getWidth(), 120);
 
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        g.drawString(storyTexts[storyIndex], 40, getHeight() - 60);
+        g.drawString(texts[storyIndex], 40, getHeight() - 60);
         g.drawString("Press SPACE to continue", getWidth() - 260, getHeight() - 20);
     }
 
     private void drawLevel(Graphics g) {
         // 背景
         if (currentLevel.getBackground() != null) {
-            currentLevel.getBackground().draw(g, cameraX);
+            g.drawImage(currentLevel.getBackground().getImg(), 0, 0, getWidth(), getHeight(), null);
         }
 
         // 平台
@@ -288,7 +344,7 @@ public class GamePanel extends JPanel {
 
         // 地面
         g.setColor(Color.GREEN);
-        g.fillRect(0, groundY + playerHeight, getWidth(), 50);
+        g.fillRect(0, groundY + playerHeight, getWidth(), 20);
     }
 
     private void drawEnd(Graphics g) {
@@ -296,6 +352,6 @@ public class GamePanel extends JPanel {
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 36));
-        g.drawString("Level Completed!", getWidth()/2 - 150, getHeight()/2);
+        g.drawString("You have collected all the fragments.", getWidth()/2 - 150, getHeight()/2);
     }
 }

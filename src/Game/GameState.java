@@ -16,7 +16,9 @@ public class GameState {
     public static final int END = 2;        // 游戏结束
     public static final int STORY = 3;      // 剧情（新功能预留）
     public static final int PAUSE = 4;      // 暂停（新功能预留）
+    public static final int POST_LEVEL_STORY = 5;// 关卡后剧情
 
+    
     // ===== 当前状态 =====
     public static int currentState = MENU;
 
@@ -45,4 +47,8 @@ public class GameState {
     public static boolean isPaused() {
         return currentState == PAUSE;
     }
+    
+    public static boolean isPostLevelStory() {
+    return currentState == POST_LEVEL_STORY;
+}
 }
